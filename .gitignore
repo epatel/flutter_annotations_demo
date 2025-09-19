@@ -43,3 +43,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Generated files
+lib/annotations.g.dart
+lib/builder.g.dart
+builder/
