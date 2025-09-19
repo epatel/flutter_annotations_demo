@@ -1,6 +1,6 @@
 # Flutter Annotations Demo
 
-A Flutter project demonstrating a custom annotation system with dynamic code generation. This project showcases how to build and use custom annotations that generate extension methods for common patterns like `toString()`, `copyWith()`, `toJson()`, equality checks, and more.
+A Flutter project demonstrating a custom `@Initializer()` annotation system with dynamic code generation. This project showcases how to build and use the `@Initializer()` annotation to automatically register classes for initialization callbacks in a centralized system.
 
 ## 🚀 Quick Start
 
@@ -72,58 +72,104 @@ flutter_annotations_demo/
 
 ## 🎯 Features
 
-### Custom Annotation System
-- **Dynamic Code Generation**: Generates extension methods without modifying source files
-- **Registry-Based Architecture**: Self-registering annotation processors
-- **Parameter Support**: Configurable annotations with type-safe parameters
+### Initializer Annotation System
+- **Automatic Registration**: Classes marked with `@Initializer()` are automatically registered
+- **Centralized Initialization**: All initializers are collected into a single `builderInitializer()` function
+- **Dynamic Code Generation**: Generates initialization code without modifying source files
+- **Registry-Based Architecture**: Self-registering annotation processor
 - **Non-Intrusive**: Original classes remain unchanged
 
-### Available Annotations
+### The `@Initializer()` Annotation
 
-| Annotation | Generated Methods | Description |
-|------------|------------------|-------------|
-| `@generateToString` | `toStringGenerated()` | Custom toString implementation |
-| `@generateEquality` | `isEqualTo()`, `generatedHashCode` | Equality and hash code |
-| `@jsonSerializable` | `toJson()`, `fromJson()` | JSON serialization |
-| `@generateCopyWith` | `copyWith()` | Immutable object copying |
-| `@initializer` | Added to `builderInitializer()` | Initialization callbacks |
+The `@Initializer()` annotation is used to mark classes that need to be initialized at application startup. When you annotate a class with `@Initializer()`, the builder system automatically:
+
+1. Detects the annotated class
+2. Adds it to the generated `builderInitializer()` function
+3. Provides a centralized way to initialize all marked classes
 
 ### Example Usage
 
 ```dart
-@generateToString
-@generateEquality
-@jsonSerializable
-@generateCopyWith
-class User {
-  final String name;
-  final int age;
-  final String email;
-
-  User({required this.name, required this.age, required this.email});
+// Mark classes that need initialization
+@Initializer()
+class DatabaseService {
+  static void initialize() {
+    print('Initializing DatabaseService...');
+    // Database setup code here
+  }
 }
 
-// After running 'make generate', you can use:
-final user = User(name: 'John', age: 30, email: 'john@example.com');
+@Initializer()
+class ApiService {
+  static void initialize() {
+    print('Initializing ApiService...');
+    // API configuration code here
+  }
+}
 
-// Generated methods
-print(user.toStringGenerated());
-final userCopy = user.copyWith(age: 31);
-final json = user.toJson();
-final isEqual = user.isEqualTo(userCopy);
+@Initializer()
+class LoggingService {
+  static void initialize() {
+    print('Initializing LoggingService...');
+    // Logging setup code here
+  }
+}
 ```
+
+After running `make generate`, you can initialize all services at once:
+
+```dart
+import 'builder.g.dart';
+
+void main() {
+  // Initialize all services marked with @Initializer()
+  builderInitializer();
+
+  runApp(MyApp());
+}
+```
+
+The generated `builderInitializer()` function will call the `initialize()` method on all classes marked with `@Initializer()`.
 
 ## 🔧 Development Workflow
 
-1. **Modify Models**: Add or update annotations on your model classes
-2. **Generate Code**: Run `make generate` to update generated files
-3. **Use Extensions**: Generated methods are automatically available
+1. **Add Initializer Annotations**: Mark classes that need initialization with `@Initializer()`
+2. **Generate Code**: Run `make generate` to update the `builderInitializer()` function
+3. **Call Initializer**: Use `builderInitializer()` in your app's main function
 4. **Test**: Run `make test` to verify functionality
 5. **Format**: Code is automatically formatted during generation
 
+### Working with Initializers
+
+1. **Create a Service Class**:
+   ```dart
+   @Initializer()
+   class MyService {
+     static void initialize() {
+       // Your initialization code
+     }
+   }
+   ```
+
+2. **Generate the Code**:
+   ```bash
+   make generate
+   ```
+
+3. **Use in Your App**:
+   ```dart
+   import 'builder.g.dart';
+
+   void main() {
+     builderInitializer(); // Calls all @Initializer() classes
+     runApp(MyApp());
+   }
+   ```
+
 ## 📚 Documentation
 
-- **Builder System**: See [builder/README.md](builder/README.md) for detailed documentation on the annotation system
+- **Builder System**: See [builder/README.md](builder/README.md) for detailed documentation on the annotation system and how to extend it
+- **Initializer Pattern**: The `@Initializer()` annotation provides a clean way to manage application startup dependencies
 - **Flutter Docs**: [Flutter Documentation](https://docs.flutter.dev/)
 - **Dart Analyzer**: [analyzer package](https://pub.dev/packages/analyzer)
 
@@ -155,6 +201,16 @@ flutter build web
 4. Run `make format` and `make test`
 5. Submit a pull request
 
+## 🎯 Use Cases
+
+The `@Initializer()` annotation is perfect for:
+
+- **Service Registration**: Database connections, API clients, logging services
+- **Configuration Setup**: Loading app settings, environment variables
+- **Third-party Library Initialization**: Firebase, analytics, crash reporting
+- **Dependency Injection**: Setting up service locators or DI containers
+- **State Management**: Initializing global state providers
+
 ## 📄 License
 
-This project is a demonstration of Flutter annotation systems and is available for educational purposes.
+This project is a demonstration of Flutter's `@Initializer()` annotation system and is available for educational purposes.
