@@ -85,7 +85,14 @@ The `@Initializer()` annotation is used to mark classes that need to be initiali
 
 1. Detects the annotated class
 2. Adds it to the generated `builderInitializer()` function
-3. Provides a centralized way to initialize all marked classes
+3. Provides a two-step initialization process for handling dependencies
+
+### Two-Step Initialization Process
+
+The initialization happens in two phases:
+
+1. **First Step**: All `initialize()` methods are called and can return a callback function or null
+2. **Second Step**: All returned callbacks are executed, allowing services to look up dependencies that were registered in the first step
 
 ### Example Usage
 
@@ -93,26 +100,51 @@ The `@Initializer()` annotation is used to mark classes that need to be initiali
 // Mark classes that need initialization
 @Initializer()
 class DatabaseService {
-  static void initialize() {
-    print('Initializing DatabaseService...');
-    // Database setup code here
+  static Function()? initialize() {
+    print('Step 1: Initializing DatabaseService...');
+    // Register database service
+    ServiceLocator.register<DatabaseService>(DatabaseService._internal());
+
+    // Return callback for second step
+    return () {
+      print('Step 2: DatabaseService post-initialization');
+      // Any setup that depends on other services being registered
+    };
   }
+
+  DatabaseService._internal();
 }
 
 @Initializer()
 class ApiService {
-  static void initialize() {
-    print('Initializing ApiService...');
-    // API configuration code here
+  static Function()? initialize() {
+    print('Step 1: Initializing ApiService...');
+    // Register API service
+    ServiceLocator.register<ApiService>(ApiService._internal());
+
+    // Return callback to configure API with database
+    return () {
+      print('Step 2: Configuring ApiService with database');
+      final db = ServiceLocator.get<DatabaseService>();
+      // Configure API service with database dependency
+    };
   }
+
+  ApiService._internal();
 }
 
 @Initializer()
 class LoggingService {
-  static void initialize() {
-    print('Initializing LoggingService...');
-    // Logging setup code here
+  static Function()? initialize() {
+    print('Step 1: Initializing LoggingService...');
+    // Register logging service
+    ServiceLocator.register<LoggingService>(LoggingService._internal());
+
+    // No second step needed, return null
+    return null;
   }
+
+  LoggingService._internal();
 }
 ```
 
@@ -122,14 +154,16 @@ After running `make generate`, you can initialize all services at once:
 import 'builder.g.dart';
 
 void main() {
-  // Initialize all services marked with @Initializer()
+  // Two-step initialization of all services marked with @Initializer()
   builderInitializer();
 
   runApp(MyApp());
 }
 ```
 
-The generated `builderInitializer()` function will call the `initialize()` method on all classes marked with `@Initializer()`.
+The generated `builderInitializer()` function will:
+1. Call all `initialize()` methods and collect returned callbacks
+2. Execute all collected callbacks in the second step
 
 ## 🔧 Development Workflow
 
@@ -145,8 +179,15 @@ The generated `builderInitializer()` function will call the `initialize()` metho
    ```dart
    @Initializer()
    class MyService {
-     static void initialize() {
-       // Your initialization code
+     static Function()? initialize() {
+       // Step 1: Register or setup the service
+       print('Registering MyService...');
+
+       // Return a callback for step 2, or null if no second step needed
+       return () {
+         print('MyService second step initialization');
+         // Access other services that were registered in step 1
+       };
      }
    }
    ```
@@ -161,10 +202,21 @@ The generated `builderInitializer()` function will call the `initialize()` metho
    import 'builder.g.dart';
 
    void main() {
-     builderInitializer(); // Calls all @Initializer() classes
+     builderInitializer(); // Two-step initialization of all @Initializer() classes
      runApp(MyApp());
    }
    ```
+
+### Method Signature
+
+The `initialize()` method must have this signature:
+```dart
+static Function()? initialize()
+```
+
+- **Return Type**: `Function()?` - either a callback function or null
+- **First Step**: The method itself runs first for all classes
+- **Second Step**: All returned callbacks are executed after all first steps complete
 
 ## 📚 Documentation
 
