@@ -255,13 +255,22 @@ flutter build web
 
 ## 🎯 Use Cases
 
-The `@Initializer()` annotation is perfect for:
+The `@Initializer()` annotation with two-step initialization is perfect for:
 
-- **Service Registration**: Database connections, API clients, logging services
-- **Configuration Setup**: Loading app settings, environment variables
-- **Third-party Library Initialization**: Firebase, analytics, crash reporting
-- **Dependency Injection**: Setting up service locators or DI containers
-- **State Management**: Initializing global state providers
+- **Service Registration**: Register services in step 1, configure dependencies in step 2
+- **Configuration Setup**: Load settings in step 1, apply configurations in step 2
+- **Third-party Library Initialization**: Initialize libraries in step 1, configure with dependencies in step 2
+- **Dependency Injection**: Register services in step 1, wire dependencies in step 2
+- **State Management**: Create providers in step 1, initialize with data in step 2
+
+### Why Two Steps?
+
+The two-step process solves the dependency ordering problem:
+
+1. **Step 1**: All services register themselves (no dependencies needed)
+2. **Step 2**: All services can safely look up and use other services that were registered in step 1
+
+This eliminates the need to manually order your initializers or worry about circular dependencies.
 
 ## 📄 License
 
