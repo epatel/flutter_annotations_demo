@@ -14,6 +14,12 @@ class CounterOption {
       'screen': () => const CounterScreen(),
     });
 
+    addChangeNotifierProvider<CounterProvider>(
+      ChangeNotifierProvider(
+        create: (_) => CounterProvider(),
+      ),
+    );
+
     return null;
   }
 }
