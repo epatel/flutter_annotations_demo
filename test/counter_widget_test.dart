@@ -8,14 +8,17 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flutter_annotations_demo/index.dart';
+import 'package:flutter_annotations_demo/options/counter.dart';
 
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+    // Build the Counter screen inside a MaterialApp and trigger a frame.
     await tester.pumpWidget(
       ChangeNotifierProvider(
         create: (context) => CounterProvider(),
-        child: const App(),
+        child: const MaterialApp(
+          home: CounterScreen(),
+        ),
       ),
     );
 
