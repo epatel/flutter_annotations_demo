@@ -2,7 +2,7 @@ info: menu select
 
 menu:
 	echo "1 make reset           - flutter clean && flutter pub get"
-	echo "2 make format          - dart format ."
+	echo "2 make format          - dart format source code"
 	echo "3 make test            - flutter test (all tests)"
 	echo "4 make analyze         - flutter analyze"
 	echo "5 make build           - flutter build web"
@@ -29,19 +29,25 @@ test:
 analyze:
 	flutter analyze
 
-build:
+build: lib/annotations.g.dart lib/builder.g.dart
 	echo "##### Clean build #####"
 	flutter clean
 	rm -fvr build
 	echo "##### Build for web #####"
 	flutter build web
 
-run:
+run: lib/annotations.g.dart lib/builder.g.dart
 	flutter run --debug -d chrome
 
-generate:
-	dart run builder/builder.dart lib
-	dart format lib/ test/ builder/
+builder/builder.exe:
+	cd builder && dart compile exe builder.dart
+
+lib/annotations.g.dart lib/builder.g.dart:
+	make generate
+
+generate: builder/builder.exe
+	builder/builder.exe lib
+	make format
 
 update_phony:
 	@echo "##### Updating .PHONY targets #####"
