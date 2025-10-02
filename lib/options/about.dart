@@ -50,70 +50,72 @@ class AboutScreen extends StatelessWidget {
 const String _aboutMarkdown = '''
 # Flutter Annotations Demo
 
-This Flutter application demonstrates a custom **@Initializer()** annotation system with dynamic code generation.
+This Flutter application demonstrates a custom annotation-driven code generation system.
 
 ## 🎯 What This App Shows
 
-This project showcases how to build and use the `@Initializer()` annotation to automatically register classes for initialization callbacks in a centralized system.
+A registry-based builder that processes annotations and generates extension methods without modifying source files.
 
-### Key Features
+### Available Annotations
 
-- **Dynamic Code Generation**: Generates initialization code without modifying source files
-- **Two-Step Initialization**: Handles dependency ordering automatically
-- **Registry-Based Architecture**: Self-registering annotation processor
-- **Non-Intrusive**: Original classes remain unchanged
+- **@Initializer** - Auto-register classes for two-step initialization
+- **@generateToString** - Generate `toStringGenerated()` method
+- **@generateEquality** - Generate `isEqualTo()` and `generatedHashCode`
+- **@jsonSerializable** - Generate `toJson()` and `fromJson()` methods
+- **@generateCopyWith** - Generate `copyWith()` method
 
 ## 🏗️ How It Works
 
-### The @Initializer() Annotation
+The builder scans Dart files, detects annotations, and generates two files:
+- `annotations.g.dart` - Annotation class definitions
+- `builder.g.dart` - Extension methods and `builderInitializer()` function
 
-Classes marked with `@Initializer()` are automatically:
-
-1. **Detected** by the builder system
-2. **Added** to the generated `builderInitializer()` function
-3. **Initialized** in a two-step process
-
-### Two-Step Process
+### Two-Step Initialization
 
 1. **Step 1**: All `initialize()` methods run and can return callbacks
-2. **Step 2**: All returned callbacks execute, allowing services to access dependencies
+2. **Step 2**: All returned callbacks execute, allowing access to dependencies
 
 ## 🔧 Example Usage
 
 ```dart
 @Initializer()
-class MyService {
+class CounterOption {
   static Function()? initialize() {
-    // Step 1: Register the service
-    ServiceLocator.register<MyService>(MyService());
+    // Register navigation option
+    addOption({
+      'title': 'Counter',
+      'route': '/counter',
+      'icon': Icons.calculate,
+      'screen': () => const CounterScreen(),
+    });
 
-    // Return callback for step 2
-    return () {
-      // Step 2: Configure with dependencies
-      final otherService = ServiceLocator.get<OtherService>();
-      // Configure this service with dependencies
-    };
+    // Register state provider
+    addChangeNotifierProvider<CounterProvider>(
+      ChangeNotifierProvider(create: (_) => CounterProvider()),
+    );
+
+    return null; // or return callback for step 2
   }
 }
 ```
 
 ## 🚀 Development Commands
 
-This project includes a comprehensive Makefile:
-
 - `make reset` - Clean and install dependencies
 - `make generate` - Generate annotation code
 - `make run` - Run the app
 - `make test` - Run tests
+- `make format` - Format code
+- `make analyze` - Analyze code
 - `make build` - Build for web
 
 ## 📚 Learn More
 
-- Check the project's README.md for detailed documentation
-- Explore the `builder/` directory for the annotation system implementation
-- See `lib/options/` for examples of `@Initializer()` usage
+- Check `README.md` for quick start guide
+- Explore `builder/` directory for builder system details
+- See `lib/options/` for real examples of `@Initializer()` usage
 
 ---
 
-*This demo shows how custom annotations can solve real-world problems like dependency injection and service initialization in Flutter applications.*
+*Built with go_router, provider, and custom code generation.*
 ''';
